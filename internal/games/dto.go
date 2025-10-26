@@ -9,11 +9,11 @@ import (
 
 type GameResponse struct {
 	ID    uuid.UUID `json:"id"`
-	Title string    `json:"topic"`
+	Title string    `json:"title"`
 }
 
 type CreateGamePayload struct {
-	Title string `json:"topic"`
+	Title string `json:"title"`
 }
 
 func (crp *CreateGamePayload) Valid(ctx context.Context) validator.Problems {

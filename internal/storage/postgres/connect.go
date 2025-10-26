@@ -55,9 +55,11 @@ func Connect(ctx context.Context, dsn string, logger *slog.Logger) (*pgxpool.Poo
 		return nil, fmt.Errorf("parse db config %s failed: %w", dsn, err)
 	}
 
-	config.ConnConfig.Tracer = &tracelog.TraceLog{
-		Logger:   &SlogPgxLogger{logger: logger},
-		LogLevel: tracelog.LogLevelInfo,
+	if logger != nil {
+		config.ConnConfig.Tracer = &tracelog.TraceLog{
+			Logger:   &SlogPgxLogger{logger: logger},
+			LogLevel: tracelog.LogLevelInfo,
+		}
 	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)

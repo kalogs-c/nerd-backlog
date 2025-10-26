@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	defer cancel()
 
 	config := config.NewHTTPConfig(config.Development)
-	db := postgres.MustConnect(ctx, config.DSN)
+	db := postgres.MustConnect(ctx, config.DSN, nil)
 	gooseProvider := migrations.MustProvide(db)
 	testQueries = sqlc.New(db)
 
