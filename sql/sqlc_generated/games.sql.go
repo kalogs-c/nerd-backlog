@@ -23,9 +23,19 @@ func (q *Queries) CreateGame(ctx context.Context, title string) (Game, error) {
 	return i, err
 }
 
+const deleteGameByID = `-- name: DeleteGameByID :exec
+DELETE FROM games
+WHERE id = $1
+`
+
+func (q *Queries) DeleteGameByID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteGameByID, id)
+	return err
+}
+
 const getGame = `-- name: GetGame :one
 SELECT id, title FROM games
-WHERE id = $1 LIMIT 1
+WHERE id = $1
 `
 
 func (q *Queries) GetGame(ctx context.Context, id uuid.UUID) (Game, error) {

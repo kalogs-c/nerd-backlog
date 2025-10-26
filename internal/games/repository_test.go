@@ -47,3 +47,15 @@ func TestRepository_CreateAndGetGame(t *testing.T) {
 	require.Equal(t, "Backlog, the game", got.Title)
 	require.Equal(t, game.ID, got.ID)
 }
+
+func TestRepository_DeleteGame(t *testing.T) {
+	repo := NewRepository(testQueries)
+	ctx := context.Background()
+
+	game, err := repo.CreateGame(ctx, domain.Game{Title: "Backlog, the game"})
+	require.NoError(t, err)
+	require.NotZero(t, game.ID)
+
+	err = repo.DeleteGameByID(ctx, game.ID)
+	require.NoError(t, err)
+}

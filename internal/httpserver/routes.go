@@ -28,4 +28,5 @@ func setupGames(
 	mux.HandleFunc("GET /games", adapter.ListGames)
 	mux.HandleFunc("GET /games/{id}", adapter.GetGameByID)
 	mux.HandleFunc("POST /games", adapter.CreateGame)
+	mux.HandleFunc("DELETE /games/{id}", adapter.DeleteGameByID)
 }

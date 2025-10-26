@@ -46,14 +46,14 @@ func (h *HTTPAdapter) CreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room, err := h.service.CreateGame(ctx, payload.Title)
+	game, err := h.service.CreateGame(ctx, payload.Title)
 	if err != nil {
-		h.error(w, r, http.StatusInternalServerError, "failed to create room", err)
+		h.error(w, r, http.StatusInternalServerError, "failed to create game", err)
 		return
 	}
 
-	if err := httpjson.Encode(w, r, http.StatusCreated, room); err != nil {
-		h.error(w, r, http.StatusInternalServerError, "failed to encode room", err)
+	if err := httpjson.Encode(w, r, http.StatusCreated, game); err != nil {
+		h.error(w, r, http.StatusInternalServerError, "failed to encode game", err)
 	}
 }
 
@@ -67,25 +67,44 @@ func (h *HTTPAdapter) GetGameByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	room, err := h.service.GetGameByID(ctx, id)
+	game, err := h.service.GetGameByID(ctx, id)
 	if err != nil {
-		h.error(w, r, http.StatusNotFound, "failed to retrieve room", err)
+		h.error(w, r, http.StatusNotFound, "failed to retrieve game", err)
 		return
 	}
 
-	if err := httpjson.Encode(w, r, http.StatusOK, room); err != nil {
-		h.error(w, r, http.StatusInternalServerError, "failed to encode room", err)
+	if err := httpjson.Encode(w, r, http.StatusOK, game); err != nil {
+		h.error(w, r, http.StatusInternalServerError, "failed to encode game", err)
 	}
 }
 
 func (h *HTTPAdapter) ListGames(w http.ResponseWriter, r *http.Request) {
-	rooms, err := h.service.ListGames(r.Context())
+	games, err := h.service.ListGames(r.Context())
 	if err != nil {
-		h.error(w, r, http.StatusInternalServerError, "failed to list rooms", err)
+		h.error(w, r, http.StatusInternalServerError, "failed to list games", err)
 		return
 	}
 
-	if err := httpjson.Encode(w, r, http.StatusOK, rooms); err != nil {
-		h.error(w, r, http.StatusInternalServerError, "failed to encode rooms", err)
+	if err := httpjson.Encode(w, r, http.StatusOK, games); err != nil {
+		h.error(w, r, http.StatusInternalServerError, "failed to encode games", err)
 	}
+}
+
+func (h *HTTPAdapter) DeleteGameByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idString := r.PathValue("id")
+
+	id, err := uuid.Parse(idString)
+	if err != nil {
+		h.error(w, r, http.StatusUnprocessableEntity, "failed to parse id", err)
+		return
+	}
+
+	err = h.service.DeleteGameByID(ctx, id)
+	if err != nil {
+		h.error(w, r, http.StatusBadRequest, "failed to delete game", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

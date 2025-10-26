@@ -27,3 +27,12 @@ func (s *service) GetGameByID(ctx context.Context, id uuid.UUID) (domain.Game, e
 func (s *service) ListGames(ctx context.Context) ([]domain.Game, error) {
 	return s.repository.ListGames(ctx)
 }
+
+func (s *service) DeleteGameByID(ctx context.Context, id uuid.UUID) error {
+	_, err := s.repository.GetGameByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.repository.DeleteGameByID(ctx, id)
+}

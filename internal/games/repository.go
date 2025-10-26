@@ -53,3 +53,7 @@ func (r *repository) ListGames(ctx context.Context) ([]domain.Game, error) {
 
 	return gamesList, nil
 }
+
+func (r *repository) DeleteGameByID(ctx context.Context, id uuid.UUID) error {
+	return r.db.DeleteGameByID(ctx, id)
+}
