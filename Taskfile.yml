@@ -1,0 +1,27 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  install-deps:
+    cmds:
+      - go install github.com/pressly/goose/v3/cmd/goose@latest
+      - go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
+  add-migration:
+    cmds:
+      - goose -dir sql/migrations create {{.CLI_ARGS}} sql 
+
+  migrate:
+    cmds:
+      - goose -dir sql/migrations postgres ./nerd-backlog.db {{.CLI_ARGS}}
+
+  sqlc:
+    cmds:
+      # -- up, down, reset ...
+      - sqlc generate
+
+  serve:
+    cmds:
+      - go run ./cmd/http/main.go | jq
+    silent: true
