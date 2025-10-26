@@ -14,7 +14,7 @@ tasks:
 
   migrate:
     cmds:
-      - goose -dir sql/migrations postgres ./nerd-backlog.db {{.CLI_ARGS}}
+      - goose -dir sql/migrations postgres postgres://postgres:postgres@localhost:5432/nerd_backlog_dev?sslmode=disable {{.CLI_ARGS}}
 
   sqlc:
     cmds:
