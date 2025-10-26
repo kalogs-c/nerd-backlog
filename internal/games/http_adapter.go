@@ -1,6 +1,7 @@
 package games
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -102,7 +103,12 @@ func (h *HTTPAdapter) DeleteGameByID(w http.ResponseWriter, r *http.Request) {
 
 	err = h.service.DeleteGameByID(ctx, id)
 	if err != nil {
-		h.error(w, r, http.StatusBadRequest, "failed to delete game", err)
+		switch {
+		case errors.Is(err, domain.ErrGameNotFound):
+			h.error(w, r, http.StatusNotFound, "game not found", err)
+		default:
+			h.error(w, r, http.StatusBadRequest, "failed to delete game", err)
+		}
 		return
 	}
 
