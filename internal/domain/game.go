@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -24,3 +25,5 @@ type GameRepository interface {
 	ListGames(ctx context.Context) ([]Game, error)
 	DeleteGameByID(ctx context.Context, id uuid.UUID) error
 }
+
+var ErrGameNotFound = errors.New("game not found")

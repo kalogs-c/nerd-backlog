@@ -2,6 +2,7 @@ package games
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
@@ -30,6 +31,10 @@ func (r *repository) CreateGame(ctx context.Context, game domain.Game) (domain.G
 
 func (r *repository) GetGameByID(ctx context.Context, id uuid.UUID) (domain.Game, error) {
 	game, err := r.db.GetGame(ctx, id)
+	if err == sql.ErrNoRows {
+		return domain.Game{}, domain.ErrGameNotFound
+	}
+
 	if err != nil {
 		return domain.Game{}, err
 	}
