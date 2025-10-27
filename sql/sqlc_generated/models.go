@@ -6,7 +6,18 @@ package sqlc
 
 import (
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Account struct {
+	ID             uuid.UUID
+	Nickname       string
+	Email          string
+	HashedPassword string
+	InsertedAt     pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+	DeletedAt      pgtype.Timestamptz
+}
 
 type Game struct {
 	ID    uuid.UUID
