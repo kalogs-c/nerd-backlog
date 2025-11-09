@@ -3,7 +3,10 @@ package accounts
 import (
 	"context"
 	"database/sql"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
 	sqlc "github.com/kalogs-c/nerd-backlog/sql/sqlc_generated"
 )
@@ -58,4 +61,12 @@ func (r *repository) GetAccountByEmail(ctx context.Context, email string) (domai
 			DeletedAt:  account.DeletedAt.Time,
 		},
 	}, nil
+}
+
+func (r *repository) StoreRefreshToken(ctx context.Context, userID uuid.UUID, refreshToken string, expiresAt time.Time) error {
+	return r.db.StoreRefreshToken(ctx, sqlc.StoreRefreshTokenParams{
+		AccountID: userID,
+		Token:     refreshToken,
+		ExpiresAt: pgtype.Timestamptz{Time: expiresAt, Valid: true},
+	})
 }

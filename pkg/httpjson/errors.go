@@ -73,3 +73,16 @@ func NotifyError(
 
 	EncodeError(w, r, code, title, detail)
 }
+
+func NotifyHTTPError(w http.ResponseWriter, r *http.Request, logger *slog.Logger, code int, title string, err error) {
+	NotifyError(
+		r.Context(),
+		w,
+		r,
+		logger,
+		code,
+		title,
+		err.Error(),
+		err,
+	)
+}

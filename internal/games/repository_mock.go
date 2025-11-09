@@ -12,6 +12,10 @@ type MockGameRepository struct {
 	mock.Mock
 }
 
+func NewMockGameRepository() domain.GameRepository {
+	return new(MockGameRepository)
+}
+
 func (m *MockGameRepository) CreateGame(ctx context.Context, game domain.Game) (domain.Game, error) {
 	args := m.Called(ctx, game)
 	return args.Get(0).(domain.Game), args.Error(1)

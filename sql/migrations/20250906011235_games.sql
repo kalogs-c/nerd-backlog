@@ -1,8 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE games (
-    id uuid PRIMARY KEY default gen_random_uuid(),
-    title text NOT NULL
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL
 );
 -- +goose StatementEnd
 
