@@ -5,7 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
 	"github.com/kalogs-c/nerd-backlog/pkg/httpjson"
 	"github.com/kalogs-c/nerd-backlog/pkg/validator"
@@ -60,7 +62,7 @@ func (h *HTTPAdapter) CreateGame(w http.ResponseWriter, r *http.Request) {
 
 func (h *HTTPAdapter) GetGameByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	idString := r.PathValue("id")
+	idString := chi.URLParam(r, "id")
 
 	id, err := uuid.Parse(idString)
 	if err != nil {
@@ -93,7 +95,7 @@ func (h *HTTPAdapter) ListGames(w http.ResponseWriter, r *http.Request) {
 
 func (h *HTTPAdapter) DeleteGameByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	idString := r.PathValue("id")
+	idString := chi.URLParam(r, "id")
 
 	id, err := uuid.Parse(idString)
 	if err != nil {

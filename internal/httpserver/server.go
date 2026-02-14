@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/kalogs-c/nerd-backlog/config"
 	sqlc "github.com/kalogs-c/nerd-backlog/sql/sqlc_generated"
 )
@@ -23,14 +25,12 @@ func NewHTTPServer(
 	config *config.HTTPConfig,
 	middlewares ...Middleware,
 ) *HTTPServer {
-	mux := http.NewServeMux()
-
-	setupRoutes(mux, logger, queries)
-
-	var handler http.Handler = mux
+	router := chi.NewRouter()
 	for _, m := range middlewares {
-		handler = m(handler)
+		router.Use(m)
 	}
+
+	setupRoutes(router, logger, queries)
 
 	return &HTTPServer{
 		logger:  logger,
@@ -38,7 +38,7 @@ func NewHTTPServer(
 		config:  config,
 		server: http.Server{
 			Addr:    net.JoinHostPort(config.Host, config.Port),
-			Handler: handler,
+			Handler: router,
 		},
 	}
 }

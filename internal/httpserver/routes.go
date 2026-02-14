@@ -2,8 +2,9 @@ package httpserver
 
 import (
 	"log/slog"
-	"net/http"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 
 	"github.com/kalogs-c/nerd-backlog/internal/accounts"
 	"github.com/kalogs-c/nerd-backlog/internal/games"
@@ -12,16 +13,18 @@ import (
 )
 
 func setupRoutes(
-	mux *http.ServeMux,
+	router chi.Router,
 	logger *slog.Logger,
 	queries *sqlc.Queries,
 ) {
-	setupGames(mux, logger, queries)
-	setupAccounts(mux, logger, queries)
+	router.Route("/api", func(r chi.Router) {
+		setupGames(r, logger, queries)
+		setupAccounts(r, logger, queries)
+	})
 }
 
 func setupGames(
-	mux *http.ServeMux,
+	router chi.Router,
 	logger *slog.Logger,
 	queries *sqlc.Queries,
 ) {
@@ -29,14 +32,14 @@ func setupGames(
 	service := games.NewService(repo)
 	adapter := games.NewHTTPAdapter(service, logger)
 
-	mux.HandleFunc("GET /api/games", adapter.ListGames)
-	mux.HandleFunc("GET /api/games/{id}", adapter.GetGameByID)
-	mux.HandleFunc("POST /api/games", adapter.CreateGame)
-	mux.HandleFunc("DELETE /api/games/{id}", adapter.DeleteGameByID)
+	router.Get("/games", adapter.ListGames)
+	router.Get("/games/{id}", adapter.GetGameByID)
+	router.Post("/games", adapter.CreateGame)
+	router.Delete("/games/{id}", adapter.DeleteGameByID)
 }
 
 func setupAccounts(
-	mux *http.ServeMux,
+	router chi.Router,
 	logger *slog.Logger,
 	queries *sqlc.Queries,
 ) {
@@ -44,5 +47,5 @@ func setupAccounts(
 	service := accounts.NewService(repo, auth.NewJWTManager([]byte("secret"), time.Minute*5, time.Hour*24))
 	adapter := accounts.NewHTTPAdapter(service, logger)
 
-	mux.HandleFunc("GET /api/login", adapter.Login)
+	router.Get("/login", adapter.Login)
 }

@@ -2,6 +2,7 @@ package games
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -9,11 +10,19 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/kalogs-c/nerd-backlog/internal/domain"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/kalogs-c/nerd-backlog/internal/domain"
 )
+
+func withRouteParam(req *http.Request, key, value string) *http.Request {
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add(key, value)
+	return req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+}
 
 func TestHTTPAdapter_CreateGame(t *testing.T) {
 	mockSvc := new(MockGameService)
@@ -67,7 +76,7 @@ func TestHTTPAdapter_GetGameByID(t *testing.T) {
 	mockSvc.On("GetGameByID", mock.Anything, id).Return(want, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/games/"+id.String(), nil)
-	req.SetPathValue("id", id.String())
+	req = withRouteParam(req, "id", id.String())
 	w := httptest.NewRecorder()
 
 	handler.GetGameByID(w, req)
@@ -86,7 +95,7 @@ func TestHTTPAdapter_GetGameByID_InvalidUUID(t *testing.T) {
 	handler := NewHTTPAdapter(mockSvc, logger)
 
 	req := httptest.NewRequest(http.MethodGet, "/games/invalid-uuid", nil)
-	req.SetPathValue("id", "invalid-uuid")
+	req = withRouteParam(req, "id", "invalid-uuid")
 	w := httptest.NewRecorder()
 
 	handler.GetGameByID(w, req)
@@ -127,7 +136,7 @@ func TestHTTPAdapter_DeleteGameByID(t *testing.T) {
 	mockSvc.On("DeleteGameByID", mock.Anything, id).Return(nil)
 
 	req := httptest.NewRequest(http.MethodDelete, "/games/"+id.String(), nil)
-	req.SetPathValue("id", id.String())
+	req = withRouteParam(req, "id", id.String())
 	w := httptest.NewRecorder()
 
 	handler.DeleteGameByID(w, req)
@@ -141,7 +150,7 @@ func TestHTTPAdapter_DeleteGameByID_BadUUID(t *testing.T) {
 	handler := NewHTTPAdapter(mockSvc, logger)
 
 	req := httptest.NewRequest(http.MethodDelete, "/games/invalid", nil)
-	req.SetPathValue("id", "invalid")
+	req = withRouteParam(req, "id", "invalid")
 	w := httptest.NewRecorder()
 
 	handler.DeleteGameByID(w, req)
@@ -157,7 +166,7 @@ func TestHTTPAdapter_DeleteGameByID_ServiceError(t *testing.T) {
 	mockSvc.On("DeleteGameByID", mock.Anything, id).Return(errors.New("delete failed"))
 
 	req := httptest.NewRequest(http.MethodDelete, "/games/"+id.String(), nil)
-	req.SetPathValue("id", id.String())
+	req = withRouteParam(req, "id", id.String())
 	w := httptest.NewRecorder()
 
 	handler.DeleteGameByID(w, req)
