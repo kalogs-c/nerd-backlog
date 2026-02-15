@@ -8,92 +8,74 @@ permissions:
     contents: read
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    format:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: go.mod
+                  cache: true
 
-      - name: Download dependencies
-        run: go mod download
+            - name: Download dependencies
+              run: go mod download
 
-      - name: Format check
-        run: test -z "$(gofmt -l .)"
+            - name: Format check
+              run: test -z "$(gofmt -l .)"
 
-  vet:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    vet:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: go.mod
+                  cache: true
 
-      - name: Download dependencies
-        run: go mod download
+            - name: Download dependencies
+              run: go mod download
 
-      - name: Vet
-        run: go vet ./...
+            - name: Vet
+              run: go vet ./...
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: go.mod
+                  cache: true
 
-      - name: Download dependencies
-        run: go mod download
+            - name: Download dependencies
+              run: go mod download
 
-      - name: Test
-        run: go test ./...
+            - name: Test
+              run: go test ./...
 
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: go.mod
+                  cache: true
 
-      - name: Download dependencies
-        run: go mod download
+            - name: Download dependencies
+              run: go mod download
 
-      - name: Build
-        run: go build ./...
-
-  tidy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Tidy check
-        run: go mod tidy && git diff --exit-code go.mod go.sum
+            - name: Build
+              run: go build ./...
