@@ -1,0 +1,13 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./tmp/nerd-backlog ./cmd/http"
+bin = "./tmp/nerd-backlog"
+full_bin = "sh -c './tmp/nerd-backlog | jq'"
+include_ext = ["go", "sql", "toml", "yaml", "yml"]
+exclude_dir = ["tmp", "vendor", "sql/sqlc_generated"]
+exclude_regex = ["_test\\.go$"]
+
+[log]
+time = true

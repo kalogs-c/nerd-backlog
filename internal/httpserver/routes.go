@@ -47,5 +47,5 @@ func setupAccounts(
 	service := accounts.NewService(repo, auth.NewJWTManager([]byte("secret"), time.Minute*5, time.Hour*24))
 	adapter := accounts.NewHTTPAdapter(service, logger)
 
-	router.Get("/login", adapter.Login)
+	router.Post("/login", adapter.Login)
 }

@@ -1,3 +1,28 @@
 [tools]
+air = "latest"
 go = "latest"
+jq = "latest"
 sqlc = "latest"
+
+[hooks]
+enter = "docker compose up -d"
+
+[tasks.install-deps]
+run = "go install github.com/pressly/goose/v3/cmd/goose@latest"
+
+[tasks.add-migration]
+run = "goose -dir sql/migrations create $@ sql"
+shell = "bash"
+
+[tasks.migrate]
+run = "goose -dir sql/migrations postgres postgres://postgres:postgres@localhost:5432/nerd_backlog_dev?sslmode=disable $@"
+shell = "bash"
+
+[tasks.sqlc]
+run = "sqlc generate"
+
+[tasks.serve]
+run = "go run ./cmd/http/main.go | jq"
+
+[tasks.dev]
+run = "air"

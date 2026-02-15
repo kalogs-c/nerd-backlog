@@ -17,8 +17,8 @@ Use this guide to keep changes consistent with existing patterns.
 ## Build / Run Commands
 - Build all packages: `go build ./...`
 - Run HTTP server: `go run ./cmd/http/main.go`
-- Taskfile wrapper: `task serve` (runs server and pipes logs through `jq`)
-- Install dev tooling: `task install-deps` (goose + sqlc)
+- Mise wrapper: `mise run serve` (runs server and pipes logs through `jq`)
+- Install dev tooling: `mise run install-deps` (goose + sqlc)
 - Dependency tidy: `go mod tidy`
 - Dependency download: `go mod download`
 - Go version: `1.25.3` (from `go.mod`)
@@ -43,14 +43,14 @@ Use this guide to keep changes consistent with existing patterns.
 - Start local DB: `docker compose up -d`
 - Adminer UI: `http://localhost:8080`
 - Default dev DSN: `postgres://postgres:postgres@localhost:5432/nerd_backlog_dev?sslmode=disable`
-- Run migrations: `task migrate`
-- Create migration: `task add-migration -- <name>`
+- Run migrations: `mise run migrate`
+- Create migration: `mise run add-migration -- <name>`
 - Migrations use goose directives (`-- +goose Up/Down`, `StatementBegin/End`).
 - Repository tests run migrations in `TestMain`.
 - Reset DB volumes: `docker compose down -v` (destructive).
 
 ## SQLC
-- Generate code: `task sqlc` (runs `sqlc generate`)
+- Generate code: `mise run sqlc` (runs `sqlc generate`)
 - Queries live in `sql/queries/*.sql`
 - Use sqlc naming comments like `-- name: CreateGame :one`
 - Use positional parameters (`$1`, `$2`, ...).

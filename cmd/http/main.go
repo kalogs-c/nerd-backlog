@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/kalogs-c/nerd-backlog/config"
 	"github.com/kalogs-c/nerd-backlog/internal/httpserver"
 	"github.com/kalogs-c/nerd-backlog/internal/storage/postgres"
@@ -29,6 +30,9 @@ func main() {
 		logger,
 		queries,
 		config,
+		middleware.RequestID,
+		middleware.Recoverer,
+		middleware.StripSlashes,
 		httpserver.WithLogging(logger),
 	)
 
