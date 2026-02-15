@@ -23,6 +23,7 @@ func setupRoutes(
 		r.Group(func(r chi.Router) {
 			r.Use(WithAuth(jwtManager, logger))
 			setupGames(r, logger, queries)
+			setupAccountsProtected(r, logger, queries, jwtManager)
 		})
 
 		setupAccounts(r, logger, queries, jwtManager)
@@ -56,4 +57,17 @@ func setupAccounts(
 
 	router.Post("/login", adapter.Login)
 	router.Post("/signup", adapter.Signup)
+}
+
+func setupAccountsProtected(
+	router chi.Router,
+	logger *slog.Logger,
+	queries *sqlc.Queries,
+	jwtManager auth.JWTManager,
+) {
+	repo := accounts.NewRepository(queries)
+	service := accounts.NewService(repo, jwtManager)
+	adapter := accounts.NewHTTPAdapter(service, logger)
+
+	router.Post("/logout", adapter.Logout)
 }

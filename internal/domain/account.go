@@ -22,11 +22,13 @@ type AccountRepository interface {
 	CreateAccount(ctx context.Context, user Account) (Account, error)
 	GetAccountByEmail(ctx context.Context, email string) (Account, error)
 	StoreRefreshToken(ctx context.Context, userID uuid.UUID, refreshToken string, expiresAt time.Time) error
+	DeleteRefreshToken(ctx context.Context, userID uuid.UUID) error
 }
 
 type AccountService interface {
 	Login(ctx context.Context, email string, password string) (Account, TokenPair, error)
 	Signup(ctx context.Context, nickname string, email string, password string) (Account, TokenPair, error)
+	Logout(ctx context.Context, accountID uuid.UUID) error
 }
 
 type TokenPair struct {

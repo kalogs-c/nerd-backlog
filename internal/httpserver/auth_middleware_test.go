@@ -51,7 +51,7 @@ func TestWithAuth_ValidToken(t *testing.T) {
 
 	middleware := WithAuth(jwtManager, nil)
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotID, ok := AccountIDFromContext(r.Context())
+		gotID, ok := auth.AccountIDFromContext(r.Context())
 		if !ok || gotID != accountID {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

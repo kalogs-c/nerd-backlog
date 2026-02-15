@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
+	"github.com/kalogs-c/nerd-backlog/pkg/auth"
 )
 
 func TestHTTPAdapter_Login(t *testing.T) {
@@ -155,5 +156,54 @@ func TestHTTPAdapter_Signup_ServiceError(t *testing.T) {
 
 	require.Equal(t, http.StatusInternalServerError, w.Code)
 
+	mockSvc.AssertExpectations(t)
+}
+
+func TestHTTPAdapter_Logout(t *testing.T) {
+	mockSvc := new(MockAccountService)
+	logger := slog.Default()
+	handler := NewHTTPAdapter(mockSvc, logger)
+
+	accountID := uuid.New()
+	mockSvc.On("Logout", mock.Anything, accountID).Return(nil)
+
+	req := httptest.NewRequest(http.MethodPost, "/logout", nil)
+	req = req.WithContext(auth.WithAccountID(req.Context(), accountID))
+	w := httptest.NewRecorder()
+
+	handler.Logout(w, req)
+
+	require.Equal(t, http.StatusNoContent, w.Code)
+	mockSvc.AssertExpectations(t)
+}
+
+func TestHTTPAdapter_Logout_MissingAccount(t *testing.T) {
+	mockSvc := new(MockAccountService)
+	logger := slog.Default()
+	handler := NewHTTPAdapter(mockSvc, logger)
+
+	req := httptest.NewRequest(http.MethodPost, "/logout", nil)
+	w := httptest.NewRecorder()
+
+	handler.Logout(w, req)
+
+	require.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestHTTPAdapter_Logout_ServiceError(t *testing.T) {
+	mockSvc := new(MockAccountService)
+	logger := slog.Default()
+	handler := NewHTTPAdapter(mockSvc, logger)
+
+	accountID := uuid.New()
+	mockSvc.On("Logout", mock.Anything, accountID).Return(errors.New("logout failed"))
+
+	req := httptest.NewRequest(http.MethodPost, "/logout", nil)
+	req = req.WithContext(auth.WithAccountID(req.Context(), accountID))
+	w := httptest.NewRecorder()
+
+	handler.Logout(w, req)
+
+	require.Equal(t, http.StatusInternalServerError, w.Code)
 	mockSvc.AssertExpectations(t)
 }

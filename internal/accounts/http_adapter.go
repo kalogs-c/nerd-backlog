@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
+	"github.com/kalogs-c/nerd-backlog/pkg/auth"
 	"github.com/kalogs-c/nerd-backlog/pkg/httpjson"
 )
 
@@ -65,4 +66,19 @@ func (h *HTTPAdapter) Signup(w http.ResponseWriter, r *http.Request) {
 	if err := httpjson.Encode(w, r, http.StatusCreated, response); err != nil {
 		httpjson.NotifyHTTPError(w, r, h.logger, http.StatusInternalServerError, "failed to encode account", err)
 	}
+}
+
+func (h *HTTPAdapter) Logout(w http.ResponseWriter, r *http.Request) {
+	accountID, ok := auth.AccountIDFromContext(r.Context())
+	if !ok {
+		httpjson.NotifyHTTPError(w, r, h.logger, http.StatusUnauthorized, "missing account", auth.ErrInvalidToken)
+		return
+	}
+
+	if err := h.service.Logout(r.Context(), accountID); err != nil {
+		httpjson.NotifyHTTPError(w, r, h.logger, http.StatusInternalServerError, "failed to logout", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -3,6 +3,7 @@ package accounts
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
 	"github.com/kalogs-c/nerd-backlog/pkg/auth"
 )
@@ -87,4 +88,8 @@ func (s *service) Signup(ctx context.Context, nickname string, email string, pas
 	}
 
 	return account, tokenPair, nil
+}
+
+func (s *service) Logout(ctx context.Context, accountID uuid.UUID) error {
+	return s.repository.DeleteRefreshToken(ctx, accountID)
 }

@@ -31,3 +31,8 @@ func (m *MockAccountRepository) StoreRefreshToken(ctx context.Context, userID uu
 	args := m.Called(ctx, userID, refreshToken, expiresAt)
 	return args.Error(0)
 }
+
+func (m *MockAccountRepository) DeleteRefreshToken(ctx context.Context, userID uuid.UUID) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}

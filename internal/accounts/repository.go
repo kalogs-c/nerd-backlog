@@ -70,3 +70,7 @@ func (r *repository) StoreRefreshToken(ctx context.Context, userID uuid.UUID, re
 		ExpiresAt: pgtype.Timestamptz{Time: expiresAt, Valid: true},
 	})
 }
+
+func (r *repository) DeleteRefreshToken(ctx context.Context, userID uuid.UUID) error {
+	return r.db.DeleteRefreshTokenByAccountID(ctx, userID)
+}
