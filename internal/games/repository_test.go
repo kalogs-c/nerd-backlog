@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kalogs-c/nerd-backlog/config"
 	"github.com/kalogs-c/nerd-backlog/internal/domain"
 	"github.com/kalogs-c/nerd-backlog/internal/storage/postgres"
+	"github.com/kalogs-c/nerd-backlog/internal/testutils"
 	"github.com/kalogs-c/nerd-backlog/sql/migrations"
 	sqlc "github.com/kalogs-c/nerd-backlog/sql/sqlc_generated"
 	"github.com/stretchr/testify/require"
@@ -18,20 +18,30 @@ import (
 var testQueries *sqlc.Queries
 
 func TestMain(m *testing.M) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	config := config.NewHTTPConfig(config.Development)
-	db := postgres.MustConnect(ctx, config.DSN, nil)
-	gooseProvider := migrations.MustProvide(db)
-	testQueries = sqlc.New(db)
-
-	_, err := gooseProvider.Up(context.Background())
+	dsn, terminate, err := testutils.StartPostgresContainer(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	os.Exit(m.Run())
+	db := postgres.MustConnect(ctx, dsn, nil)
+	gooseProvider := migrations.MustProvide(db)
+	testQueries = sqlc.New(db)
+
+	_, err = gooseProvider.Up(context.Background())
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	exitCode := m.Run()
+
+	if err := terminate(context.Background()); err != nil {
+		log.Println(err)
+	}
+
+	os.Exit(exitCode)
 }
 
 func TestRepository_CreateAndGetGame(t *testing.T) {
