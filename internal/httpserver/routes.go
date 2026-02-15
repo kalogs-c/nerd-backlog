@@ -17,9 +17,15 @@ func setupRoutes(
 	logger *slog.Logger,
 	queries *sqlc.Queries,
 ) {
+	jwtManager := auth.NewJWTManager([]byte("secret"), time.Minute*5, time.Hour*24)
+
 	router.Route("/api", func(r chi.Router) {
-		setupGames(r, logger, queries)
-		setupAccounts(r, logger, queries)
+		r.Group(func(r chi.Router) {
+			r.Use(WithAuth(jwtManager, logger))
+			setupGames(r, logger, queries)
+		})
+
+		setupAccounts(r, logger, queries, jwtManager)
 	})
 }
 
@@ -42,9 +48,10 @@ func setupAccounts(
 	router chi.Router,
 	logger *slog.Logger,
 	queries *sqlc.Queries,
+	jwtManager auth.JWTManager,
 ) {
 	repo := accounts.NewRepository(queries)
-	service := accounts.NewService(repo, auth.NewJWTManager([]byte("secret"), time.Minute*5, time.Hour*24))
+	service := accounts.NewService(repo, jwtManager)
 	adapter := accounts.NewHTTPAdapter(service, logger)
 
 	router.Post("/login", adapter.Login)

@@ -57,3 +57,22 @@ func (j *JWTManager) GenerateRefreshToken(userID uuid.UUID) (string, time.Time, 
 	signed, err := t.SignedString(j.Secret)
 	return signed, exp, err
 }
+
+func (j *JWTManager) VerifyAccessToken(token string) (uuid.UUID, error) {
+	parsed, err := jwt.ParseWithClaims(token, &claims{}, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrInvalidToken
+		}
+		return j.Secret, nil
+	})
+	if err != nil || !parsed.Valid {
+		return uuid.Nil, ErrInvalidToken
+	}
+
+	parsedClaims, ok := parsed.Claims.(*claims)
+	if !ok {
+		return uuid.Nil, ErrInvalidToken
+	}
+
+	return parsedClaims.AccountID, nil
+}
