@@ -1,1 +1,6 @@
 tmp
+*~
+golang-ci-template-github-actions
+*zip
+*.out
+dist/
