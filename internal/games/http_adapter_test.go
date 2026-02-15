@@ -39,7 +39,6 @@ func TestHTTPAdapter_CreateGame(t *testing.T) {
 
 	handler.CreateGame(w, req)
 	res := w.Result()
-	defer res.Body.Close()
 
 	require.Equal(t, http.StatusCreated, res.StatusCode)
 
@@ -47,6 +46,7 @@ func TestHTTPAdapter_CreateGame(t *testing.T) {
 	require.NoError(t, json.NewDecoder(res.Body).Decode(&got))
 	require.Equal(t, want.ID, got.ID)
 	require.Equal(t, want.Title, got.Title)
+	require.NoError(t, res.Body.Close())
 
 	mockSvc.AssertExpectations(t)
 }

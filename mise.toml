@@ -1,6 +1,7 @@
 [tools]
 air = "latest"
 go = "latest"
+golangci-lint = "latest"
 jq = "latest"
 sqlc = "latest"
 

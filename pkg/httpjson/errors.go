@@ -29,7 +29,7 @@ func EncodeError(w http.ResponseWriter, r *http.Request, status int, title strin
 		Status: status,
 	}
 
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func EncodeValidationErrors(w http.ResponseWriter, r *http.Request, problems map[string][]string) {
@@ -52,7 +52,7 @@ func EncodeValidationErrors(w http.ResponseWriter, r *http.Request, problems map
 
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(http.StatusUnprocessableEntity)
-	json.NewEncoder(w).Encode(resp)
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 func NotifyError(
