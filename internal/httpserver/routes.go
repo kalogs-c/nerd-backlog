@@ -56,7 +56,7 @@ func setupAccounts(
 	adapter := accounts.NewHTTPAdapter(service, logger)
 
 	router.Post("/login", adapter.Login)
-	router.Post("/signup", adapter.Signup)
+	router.Post("/register", adapter.Register)
 }
 
 func setupAccountsProtected(

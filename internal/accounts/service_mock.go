@@ -21,7 +21,7 @@ func (m *MockAccountService) Login(ctx context.Context, email string, password s
 	return args.Get(0).(domain.Account), args.Get(1).(domain.TokenPair), args.Error(2)
 }
 
-func (m *MockAccountService) Signup(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.TokenPair, error) {
+func (m *MockAccountService) Register(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.TokenPair, error) {
 	args := m.Called(ctx, nickname, email, password)
 	return args.Get(0).(domain.Account), args.Get(1).(domain.TokenPair), args.Error(2)
 }

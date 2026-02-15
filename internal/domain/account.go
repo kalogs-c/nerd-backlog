@@ -27,7 +27,7 @@ type AccountRepository interface {
 
 type AccountService interface {
 	Login(ctx context.Context, email string, password string) (Account, TokenPair, error)
-	Signup(ctx context.Context, nickname string, email string, password string) (Account, TokenPair, error)
+	Register(ctx context.Context, nickname string, email string, password string) (Account, TokenPair, error)
 	Logout(ctx context.Context, accountID uuid.UUID) error
 }
 

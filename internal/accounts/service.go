@@ -53,7 +53,7 @@ func (s *service) Login(ctx context.Context, email string, password string) (dom
 	return user, tokenPair, nil
 }
 
-func (s *service) Signup(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.TokenPair, error) {
+func (s *service) Register(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.TokenPair, error) {
 	hashedPassword, err := auth.HashPassword(password)
 	if err != nil {
 		return domain.Account{}, domain.TokenPair{}, err

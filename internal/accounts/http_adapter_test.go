@@ -88,7 +88,7 @@ func TestHTTPAdapter_Login_ServiceError(t *testing.T) {
 	mockSvc.AssertExpectations(t)
 }
 
-func TestHTTPAdapter_Signup(t *testing.T) {
+func TestHTTPAdapter_Register(t *testing.T) {
 	mockSvc := new(MockAccountService)
 	logger := slog.Default()
 	handler := NewHTTPAdapter(mockSvc, logger)
@@ -103,14 +103,14 @@ func TestHTTPAdapter_Signup(t *testing.T) {
 		RefreshToken: "refresh-token",
 	}
 
-	mockSvc.On("Signup", mock.Anything, account.Nickname, account.Email, "password").Return(account, tokenPair, nil)
+	mockSvc.On("Register", mock.Anything, account.Nickname, account.Email, "password").Return(account, tokenPair, nil)
 
 	body := bytes.NewBufferString(`{"nickname":"nerd","email":"nerd@example.com","password":"password"}`)
-	req := httptest.NewRequest(http.MethodPost, "/signup", body)
+	req := httptest.NewRequest(http.MethodPost, "/register", body)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	handler.Register(w, req)
 
 	require.Equal(t, http.StatusCreated, w.Code)
 
@@ -125,34 +125,34 @@ func TestHTTPAdapter_Signup(t *testing.T) {
 	mockSvc.AssertExpectations(t)
 }
 
-func TestHTTPAdapter_Signup_BadPayload(t *testing.T) {
+func TestHTTPAdapter_Register_BadPayload(t *testing.T) {
 	mockSvc := new(MockAccountService)
 	logger := slog.Default()
 	handler := NewHTTPAdapter(mockSvc, logger)
 
 	body := bytes.NewBufferString(`{"nickname":123}`)
-	req := httptest.NewRequest(http.MethodPost, "/signup", body)
+	req := httptest.NewRequest(http.MethodPost, "/register", body)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	handler.Register(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestHTTPAdapter_Signup_ServiceError(t *testing.T) {
+func TestHTTPAdapter_Register_ServiceError(t *testing.T) {
 	mockSvc := new(MockAccountService)
 	logger := slog.Default()
 	handler := NewHTTPAdapter(mockSvc, logger)
 
-	mockSvc.On("Signup", mock.Anything, "nerd", "nerd@example.com", "password").Return(domain.Account{}, domain.TokenPair{}, errors.New("signup failed"))
+	mockSvc.On("Register", mock.Anything, "nerd", "nerd@example.com", "password").Return(domain.Account{}, domain.TokenPair{}, errors.New("register failed"))
 
 	body := bytes.NewBufferString(`{"nickname":"nerd","email":"nerd@example.com","password":"password"}`)
-	req := httptest.NewRequest(http.MethodPost, "/signup", body)
+	req := httptest.NewRequest(http.MethodPost, "/register", body)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	handler.Signup(w, req)
+	handler.Register(w, req)
 
 	require.Equal(t, http.StatusInternalServerError, w.Code)
 

@@ -43,18 +43,18 @@ func (h *HTTPAdapter) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *HTTPAdapter) Signup(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPAdapter) Register(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	payload, err := httpjson.DecodeValid[*SignupPayload](r)
+	payload, err := httpjson.DecodeValid[*RegisterPayload](r)
 	if err != nil {
 		httpjson.NotifyHTTPError(w, r, h.logger, http.StatusBadRequest, "invalid payload", err)
 		return
 	}
 
-	account, tokenPair, err := h.service.Signup(ctx, payload.Nickname, payload.Email, payload.Password)
+	account, tokenPair, err := h.service.Register(ctx, payload.Nickname, payload.Email, payload.Password)
 	if err != nil {
-		httpjson.NotifyHTTPError(w, r, h.logger, http.StatusInternalServerError, "failed to signup", err)
+		httpjson.NotifyHTTPError(w, r, h.logger, http.StatusInternalServerError, "failed to register", err)
 		return
 	}
 
