@@ -15,7 +15,7 @@ run = "goose -dir sql/migrations create $@ sql"
 shell = "bash"
 
 [tasks.migrate]
-run = "goose -dir sql/migrations postgres postgres://postgres:postgres@localhost:5432/nerd_backlog_dev?sslmode=disable $@"
+run = "goose -dir sql/migrations postgres postgres://postgres:postgres@localhost:5432/nerd_backlog_dev?sslmode=disable"
 shell = "bash"
 
 [tasks.sqlc]
