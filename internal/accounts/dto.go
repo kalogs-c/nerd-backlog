@@ -46,5 +46,30 @@ type LoginPayload struct {
 
 func (lp *LoginPayload) Valid(ctx context.Context) validator.Problems {
 	problems := make(validator.Problems)
+
+	if err := validator.ValidateEmail(lp.Email); err != nil {
+		problems.Add("email", err.Error())
+	}
+
+	return problems
+}
+
+type SignupPayload struct {
+	Nickname string `json:"nickname"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (sp *SignupPayload) Valid(ctx context.Context) validator.Problems {
+	problems := make(validator.Problems)
+
+	if err := validator.ValidateEmail(sp.Email); err != nil {
+		problems.Add("email", err.Error())
+	}
+
+	if len(sp.Password) < 8 {
+		problems.Add("password", "password must be at least 8 characters long")
+	}
+
 	return problems
 }

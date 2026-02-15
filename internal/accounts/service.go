@@ -51,3 +51,40 @@ func (s *service) Login(ctx context.Context, email string, password string) (dom
 
 	return user, tokenPair, nil
 }
+
+func (s *service) Signup(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.TokenPair, error) {
+	hashedPassword, err := auth.HashPassword(password)
+	if err != nil {
+		return domain.Account{}, domain.TokenPair{}, err
+	}
+
+	account, err := s.repository.CreateAccount(ctx, domain.Account{
+		Nickname:       nickname,
+		Email:          email,
+		HashedPassword: hashedPassword,
+	})
+	if err != nil {
+		return domain.Account{}, domain.TokenPair{}, err
+	}
+
+	accessToken, err := s.jwtManager.GenerateAccessToken(account.ID)
+	if err != nil {
+		return domain.Account{}, domain.TokenPair{}, err
+	}
+
+	refreshToken, exp, err := s.jwtManager.GenerateRefreshToken(account.ID)
+	if err != nil {
+		return domain.Account{}, domain.TokenPair{}, err
+	}
+
+	if err := s.repository.StoreRefreshToken(ctx, account.ID, refreshToken, exp); err != nil {
+		return domain.Account{}, domain.TokenPair{}, err
+	}
+
+	tokenPair := domain.TokenPair{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	return account, tokenPair, nil
+}
