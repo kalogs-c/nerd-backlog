@@ -1,14 +1,14 @@
-name: CI
+name: Go
 
 on:
-  push:
-  pull_request:
+    push:
+    pull_request:
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  go:
+  format:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,14 +26,74 @@ jobs:
       - name: Format check
         run: test -z "$(gofmt -l .)"
 
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
       - name: Vet
         run: go vet ./...
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
 
       - name: Test
         run: go test ./...
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
       - name: Build
         run: go build ./...
+
+  tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
 
       - name: Tidy check
         run: go mod tidy && git diff --exit-code go.mod go.sum
