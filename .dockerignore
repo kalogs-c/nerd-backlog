@@ -1,0 +1,12 @@
+.git
+.gitignore
+.DS_Store
+.idea
+.vscode
+bin/
+tmp/
+*.log
+**/*_test.go
+**/*.md
+sql/sqlc_generated/*_test.go
+docker-compose.yml
