@@ -22,23 +22,6 @@ func MountAccountResponse(account domain.Account) AccountResponse {
 	}
 }
 
-type TokenPairResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-
-func MountTokenPairResponse(tokenPair domain.TokenPair) TokenPairResponse {
-	return TokenPairResponse{
-		AccessToken:  tokenPair.AccessToken,
-		RefreshToken: tokenPair.RefreshToken,
-	}
-}
-
-type LoginResponse struct {
-	Account   AccountResponse   `json:"account"`
-	TokenPair TokenPairResponse `json:"token_pair"`
-}
-
 type LoginPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

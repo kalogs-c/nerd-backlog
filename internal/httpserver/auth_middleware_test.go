@@ -1,10 +1,10 @@
 package httpserver
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -12,9 +12,20 @@ import (
 	"github.com/kalogs-c/nerd-backlog/pkg/auth"
 )
 
+type stubSessionStore struct {
+	accountID uuid.UUID
+	err       error
+}
+
+func (s stubSessionStore) GetSessionAccountID(ctx context.Context, token string) (uuid.UUID, error) {
+	if s.err != nil {
+		return uuid.Nil, s.err
+	}
+	return s.accountID, nil
+}
+
 func TestWithAuth_MissingToken(t *testing.T) {
-	jwtManager := auth.NewJWTManager([]byte("secret"), time.Minute, time.Hour)
-	middleware := WithAuth(jwtManager, nil)
+	middleware := WithAuth(nil, nil)
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -27,15 +38,14 @@ func TestWithAuth_MissingToken(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
-func TestWithAuth_InvalidToken(t *testing.T) {
-	jwtManager := auth.NewJWTManager([]byte("secret"), time.Minute, time.Hour)
-	middleware := WithAuth(jwtManager, nil)
+func TestWithAuth_MissingSessionCookie(t *testing.T) {
+	sessionStore := stubSessionStore{accountID: uuid.New()}
+	middleware := WithAuth(sessionStore, nil)
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/games", nil)
-	req.Header.Set("Authorization", "Bearer not-a-token")
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -43,16 +53,35 @@ func TestWithAuth_InvalidToken(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
-func TestWithAuth_ValidToken(t *testing.T) {
-	jwtManager := auth.NewJWTManager([]byte("secret"), time.Minute, time.Hour)
+func TestWithAuth_InvalidSession(t *testing.T) {
+	sessionStore := stubSessionStore{err: auth.ErrInvalidToken}
+	middleware := WithAuth(sessionStore, nil)
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/games", nil)
+	req.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: "session-token"})
+	w := httptest.NewRecorder()
+
+	handler.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestWithAuth_SessionCookie(t *testing.T) {
 	accountID := uuid.New()
-	accessToken, err := jwtManager.GenerateAccessToken(accountID)
-	require.NoError(t, err)
+	sessionStore := stubSessionStore{accountID: accountID}
 
-	middleware := WithAuth(jwtManager, nil)
+	middleware := WithAuth(sessionStore, nil)
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotID, ok := auth.AccountIDFromContext(r.Context())
 		if !ok || gotID != accountID {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		token, ok := auth.SessionTokenFromContext(r.Context())
+		if !ok || token != "session-token" {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -60,7 +89,7 @@ func TestWithAuth_ValidToken(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/games", nil)
-	req.Header.Set("Authorization", "Bearer "+accessToken)
+	req.AddCookie(&http.Cookie{Name: auth.SessionCookieName, Value: "session-token"})
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)

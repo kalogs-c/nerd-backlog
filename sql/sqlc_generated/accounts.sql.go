@@ -7,9 +7,6 @@ package sqlc
 
 import (
 	"context"
-
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createAccount = `-- name: CreateAccount :one
@@ -39,16 +36,6 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	return i, err
 }
 
-const deleteRefreshTokenByAccountID = `-- name: DeleteRefreshTokenByAccountID :exec
-DELETE FROM refresh_tokens
-WHERE account_id = $1
-`
-
-func (q *Queries) DeleteRefreshTokenByAccountID(ctx context.Context, accountID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, deleteRefreshTokenByAccountID, accountID)
-	return err
-}
-
 const getAccountByEmail = `-- name: GetAccountByEmail :one
 SELECT id, nickname, email, hashed_password, inserted_at, updated_at, deleted_at FROM accounts
 WHERE email = $1
@@ -67,21 +54,4 @@ func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (Account,
 		&i.DeletedAt,
 	)
 	return i, err
-}
-
-const storeRefreshToken = `-- name: StoreRefreshToken :exec
-INSERT INTO refresh_tokens (token, account_id, expires_at)
-VALUES ($1, $2, $3)
-ON CONFLICT (account_id) DO UPDATE SET token = EXCLUDED.token, expires_at = EXCLUDED.expires_at
-`
-
-type StoreRefreshTokenParams struct {
-	Token     string
-	AccountID uuid.UUID
-	ExpiresAt pgtype.Timestamptz
-}
-
-func (q *Queries) StoreRefreshToken(ctx context.Context, arg StoreRefreshTokenParams) error {
-	_, err := q.db.Exec(ctx, storeRefreshToken, arg.Token, arg.AccountID, arg.ExpiresAt)
-	return err
 }

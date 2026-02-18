@@ -2,7 +2,6 @@ package accounts
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
 
@@ -15,8 +14,8 @@ import (
 
 func TestService_Login_Success(t *testing.T) {
 	mockRepo := new(MockAccountRepository)
-	jwtManager := auth.NewJWTManager([]byte("nerd_secret"), time.Hour, time.Hour)
-	svc := NewService(mockRepo, jwtManager)
+	sessionManager := auth.NewSessionManager(time.Hour)
+	svc := NewService(mockRepo, sessionManager)
 
 	ctx := context.Background()
 	email := "service_test@example.com"
@@ -34,23 +33,20 @@ func TestService_Login_Success(t *testing.T) {
 		},
 	}
 
-	accessToken, _ := jwtManager.GenerateAccessToken(user.ID)
-	refreshToken, _, _ := jwtManager.GenerateRefreshToken(user.ID)
-
 	mockRepo.On("GetAccountByEmail", ctx, email).Return(user, nil)
-	mockRepo.On("StoreRefreshToken", ctx, user.ID, refreshToken, mock.AnythingOfType(reflect.TypeFor[time.Time]().Name())).Return(nil)
+	mockRepo.On("CreateSession", ctx, user.ID, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(nil)
 
-	account, tokenPair, err := svc.Login(ctx, email, password)
+	account, session, err := svc.Login(ctx, email, password)
 	require.NoError(t, err)
 	require.Equal(t, user.Email, account.Email)
-	require.Equal(t, accessToken, tokenPair.AccessToken)
-	require.Equal(t, refreshToken, tokenPair.RefreshToken)
+	require.NotEmpty(t, session.Token)
+	require.True(t, session.ExpiresAt.After(time.Now()))
 	mockRepo.AssertExpectations(t)
 }
 
 func TestService_Login_EmailNotFound(t *testing.T) {
 	mockRepo := new(MockAccountRepository)
-	svc := NewService(mockRepo, auth.NewJWTManager([]byte("nerd_secret"), time.Hour, time.Hour))
+	svc := NewService(mockRepo, auth.NewSessionManager(time.Hour))
 
 	ctx := context.Background()
 	email := "not_found@example.com"
@@ -66,7 +62,7 @@ func TestService_Login_EmailNotFound(t *testing.T) {
 
 func TestService_Login_PasswordIncorrect(t *testing.T) {
 	mockRepo := new(MockAccountRepository)
-	svc := NewService(mockRepo, auth.NewJWTManager([]byte("nerd_secret"), time.Hour, time.Hour))
+	svc := NewService(mockRepo, auth.NewSessionManager(time.Hour))
 
 	ctx := context.Background()
 	email := "service_test@example.com"

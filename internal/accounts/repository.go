@@ -63,14 +63,25 @@ func (r *repository) GetAccountByEmail(ctx context.Context, email string) (domai
 	}, nil
 }
 
-func (r *repository) StoreRefreshToken(ctx context.Context, userID uuid.UUID, refreshToken string, expiresAt time.Time) error {
-	return r.db.StoreRefreshToken(ctx, sqlc.StoreRefreshTokenParams{
-		AccountID: userID,
-		Token:     refreshToken,
+func (r *repository) CreateSession(ctx context.Context, accountID uuid.UUID, token string, expiresAt time.Time) error {
+	return r.db.CreateSession(ctx, sqlc.CreateSessionParams{
+		Token:     token,
+		AccountID: accountID,
 		ExpiresAt: pgtype.Timestamptz{Time: expiresAt, Valid: true},
 	})
 }
 
-func (r *repository) DeleteRefreshToken(ctx context.Context, userID uuid.UUID) error {
-	return r.db.DeleteRefreshTokenByAccountID(ctx, userID)
+func (r *repository) GetSessionAccountID(ctx context.Context, token string) (uuid.UUID, error) {
+	accountID, err := r.db.GetSessionAccountID(ctx, token)
+	if err == sql.ErrNoRows {
+		return uuid.Nil, domain.ErrSessionNotFound
+	} else if err != nil {
+		return uuid.Nil, err
+	}
+
+	return accountID, nil
+}
+
+func (r *repository) DeleteSession(ctx context.Context, token string) error {
+	return r.db.DeleteSession(ctx, token)
 }

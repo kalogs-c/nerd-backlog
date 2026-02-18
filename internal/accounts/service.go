@@ -9,54 +9,32 @@ import (
 )
 
 type service struct {
-	repository domain.AccountRepository
-	jwtManager auth.JWTManager
+	repository     domain.AccountRepository
+	sessionManager auth.SessionManager
 }
 
-func NewService(repository domain.AccountRepository, jwtManager auth.JWTManager) domain.AccountService {
-	return &service{repository, jwtManager}
+func NewService(repository domain.AccountRepository, sessionManager auth.SessionManager) domain.AccountService {
+	return &service{repository, sessionManager}
 }
 
-func (s *service) Login(ctx context.Context, email string, password string) (domain.Account, domain.TokenPair, error) {
-	user, err := s.repository.GetAccountByEmail(ctx, email)
+func (s *service) Login(ctx context.Context, email string, password string) (domain.Account, domain.Session, error) {
+	user, err := s.authenticate(ctx, email, password)
 	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
+		return domain.Account{}, domain.Session{}, err
 	}
 
-	ok, err := auth.ComparePassword(password, user.HashedPassword)
+	session, err := s.issueSession(ctx, user.ID)
 	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
-	}
-	if !ok {
-		return domain.Account{}, domain.TokenPair{}, domain.ErrAccountNotFound
+		return domain.Account{}, domain.Session{}, err
 	}
 
-	accessToken, err := s.jwtManager.GenerateAccessToken(user.ID)
-	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
-	}
-
-	refreshToken, exp, err := s.jwtManager.GenerateRefreshToken(user.ID)
-	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
-	}
-
-	if err := s.repository.StoreRefreshToken(ctx, user.ID, refreshToken, exp); err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
-	}
-
-	tokenPair := domain.TokenPair{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-
-	return user, tokenPair, nil
+	return user, session, nil
 }
 
-func (s *service) Register(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.TokenPair, error) {
+func (s *service) Register(ctx context.Context, nickname string, email string, password string) (domain.Account, domain.Session, error) {
 	hashedPassword, err := auth.HashPassword(password)
 	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
+		return domain.Account{}, domain.Session{}, err
 	}
 
 	account, err := s.repository.CreateAccount(ctx, domain.Account{
@@ -65,31 +43,47 @@ func (s *service) Register(ctx context.Context, nickname string, email string, p
 		HashedPassword: hashedPassword,
 	})
 	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
+		return domain.Account{}, domain.Session{}, err
 	}
 
-	accessToken, err := s.jwtManager.GenerateAccessToken(account.ID)
+	session, err := s.issueSession(ctx, account.ID)
 	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
+		return domain.Account{}, domain.Session{}, err
 	}
 
-	refreshToken, exp, err := s.jwtManager.GenerateRefreshToken(account.ID)
-	if err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
-	}
-
-	if err := s.repository.StoreRefreshToken(ctx, account.ID, refreshToken, exp); err != nil {
-		return domain.Account{}, domain.TokenPair{}, err
-	}
-
-	tokenPair := domain.TokenPair{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	}
-
-	return account, tokenPair, nil
+	return account, session, nil
 }
 
-func (s *service) Logout(ctx context.Context, accountID uuid.UUID) error {
-	return s.repository.DeleteRefreshToken(ctx, accountID)
+func (s *service) LogoutSession(ctx context.Context, token string) error {
+	return s.repository.DeleteSession(ctx, token)
+}
+
+func (s *service) authenticate(ctx context.Context, email string, password string) (domain.Account, error) {
+	user, err := s.repository.GetAccountByEmail(ctx, email)
+	if err != nil {
+		return domain.Account{}, err
+	}
+
+	ok, err := auth.ComparePassword(password, user.HashedPassword)
+	if err != nil {
+		return domain.Account{}, err
+	}
+	if !ok {
+		return domain.Account{}, domain.ErrAccountNotFound
+	}
+
+	return user, nil
+}
+
+func (s *service) issueSession(ctx context.Context, accountID uuid.UUID) (domain.Session, error) {
+	token, expiresAt, err := s.sessionManager.GenerateSessionToken()
+	if err != nil {
+		return domain.Session{}, err
+	}
+
+	if err := s.repository.CreateSession(ctx, accountID, token, expiresAt); err != nil {
+		return domain.Session{}, err
+	}
+
+	return domain.Session{Token: token, ExpiresAt: expiresAt}, nil
 }

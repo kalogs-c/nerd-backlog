@@ -27,12 +27,17 @@ func (m *MockAccountRepository) GetAccountByEmail(ctx context.Context, email str
 	return args.Get(0).(domain.Account), args.Error(1)
 }
 
-func (m *MockAccountRepository) StoreRefreshToken(ctx context.Context, userID uuid.UUID, refreshToken string, expiresAt time.Time) error {
-	args := m.Called(ctx, userID, refreshToken, expiresAt)
+func (m *MockAccountRepository) CreateSession(ctx context.Context, accountID uuid.UUID, token string, expiresAt time.Time) error {
+	args := m.Called(ctx, accountID, token, expiresAt)
 	return args.Error(0)
 }
 
-func (m *MockAccountRepository) DeleteRefreshToken(ctx context.Context, userID uuid.UUID) error {
-	args := m.Called(ctx, userID)
+func (m *MockAccountRepository) GetSessionAccountID(ctx context.Context, token string) (uuid.UUID, error) {
+	args := m.Called(ctx, token)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
+
+func (m *MockAccountRepository) DeleteSession(ctx context.Context, token string) error {
+	args := m.Called(ctx, token)
 	return args.Error(0)
 }

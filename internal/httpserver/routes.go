@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/kalogs-c/nerd-backlog/internal/accounts"
+	"github.com/kalogs-c/nerd-backlog/internal/domain"
 	"github.com/kalogs-c/nerd-backlog/internal/games"
 	"github.com/kalogs-c/nerd-backlog/pkg/auth"
 	sqlc "github.com/kalogs-c/nerd-backlog/sql/sqlc_generated"
@@ -17,16 +18,17 @@ func setupRoutes(
 	logger *slog.Logger,
 	queries *sqlc.Queries,
 ) {
-	jwtManager := auth.NewJWTManager([]byte("secret"), time.Minute*5, time.Hour*24)
+	sessionManager := auth.NewSessionManager(time.Hour * 24 * 7)
+	accountsRepo := accounts.NewRepository(queries)
 
 	router.Route("/api", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			r.Use(WithAuth(jwtManager, logger))
+			r.Use(WithAuth(accountsRepo, logger))
 			setupGames(r, logger, queries)
-			setupAccountsProtected(r, logger, queries, jwtManager)
+			setupAccountsProtected(r, logger, accountsRepo, sessionManager)
 		})
 
-		setupAccounts(r, logger, queries, jwtManager)
+		setupAccounts(r, logger, accountsRepo, sessionManager)
 	})
 }
 
@@ -48,11 +50,10 @@ func setupGames(
 func setupAccounts(
 	router chi.Router,
 	logger *slog.Logger,
-	queries *sqlc.Queries,
-	jwtManager auth.JWTManager,
+	repo domain.AccountRepository,
+	sessionManager auth.SessionManager,
 ) {
-	repo := accounts.NewRepository(queries)
-	service := accounts.NewService(repo, jwtManager)
+	service := accounts.NewService(repo, sessionManager)
 	adapter := accounts.NewHTTPAdapter(service, logger)
 
 	router.Post("/login", adapter.Login)
@@ -62,11 +63,10 @@ func setupAccounts(
 func setupAccountsProtected(
 	router chi.Router,
 	logger *slog.Logger,
-	queries *sqlc.Queries,
-	jwtManager auth.JWTManager,
+	repo domain.AccountRepository,
+	sessionManager auth.SessionManager,
 ) {
-	repo := accounts.NewRepository(queries)
-	service := accounts.NewService(repo, jwtManager)
+	service := accounts.NewService(repo, sessionManager)
 	adapter := accounts.NewHTTPAdapter(service, logger)
 
 	router.Post("/logout", adapter.Logout)
