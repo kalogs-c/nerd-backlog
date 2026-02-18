@@ -52,7 +52,6 @@ func TestHTTPAdapter_Login(t *testing.T) {
 	require.Equal(t, account.Email, got.Email)
 
 	res := w.Result()
-	defer res.Body.Close()
 	var cookie *http.Cookie
 	for _, c := range res.Cookies() {
 		if c.Name == auth.SessionCookieName {
@@ -62,6 +61,7 @@ func TestHTTPAdapter_Login(t *testing.T) {
 	}
 	require.NotNil(t, cookie)
 	require.Equal(t, session.Token, cookie.Value)
+	require.NoError(t, res.Body.Close())
 
 	mockSvc.AssertExpectations(t)
 }
@@ -133,7 +133,6 @@ func TestHTTPAdapter_Register(t *testing.T) {
 	require.Equal(t, account.Email, got.Email)
 
 	res := w.Result()
-	defer res.Body.Close()
 	var cookie *http.Cookie
 	for _, c := range res.Cookies() {
 		if c.Name == auth.SessionCookieName {
@@ -143,6 +142,7 @@ func TestHTTPAdapter_Register(t *testing.T) {
 	}
 	require.NotNil(t, cookie)
 	require.Equal(t, session.Token, cookie.Value)
+	require.NoError(t, res.Body.Close())
 
 	mockSvc.AssertExpectations(t)
 }
@@ -196,7 +196,6 @@ func TestHTTPAdapter_Logout(t *testing.T) {
 
 	require.Equal(t, http.StatusNoContent, w.Code)
 	res := w.Result()
-	defer res.Body.Close()
 	var cookie *http.Cookie
 	for _, c := range res.Cookies() {
 		if c.Name == auth.SessionCookieName {
@@ -206,6 +205,7 @@ func TestHTTPAdapter_Logout(t *testing.T) {
 	}
 	require.NotNil(t, cookie)
 	require.Equal(t, -1, cookie.MaxAge)
+	require.NoError(t, res.Body.Close())
 
 	mockSvc.AssertExpectations(t)
 }
