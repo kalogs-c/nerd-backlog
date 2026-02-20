@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.3.1
               with:
                   fetch-depth: 0
 
@@ -30,7 +30,7 @@ jobs:
 
             - name: Upload SARIF to Code Scanning
               if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-              uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+              uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
               with:
                   sarif_file: ./linter-results.sarif
 
@@ -38,7 +38,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+              uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v4.3.1
               with:
                   fetch-depth: 0
 
